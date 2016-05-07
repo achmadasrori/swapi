@@ -104,6 +104,9 @@
 				}else{
 					urlHash = document.location.hash;
 					urlHash_ex = urlHash.split("/");
+					if(urlHash_ex[1]=="people"){
+						urlHash_ex[1]="peoples";
+					}
 					menuHash_ex = menu[i].children[0].getAttribute('href').split("/");
 					if((urlHash_ex[1]==menuHash_ex[1]) || (!urlHash && i==1)){
 						addClass(menu[i].children[0],'active');
@@ -121,6 +124,7 @@
 		var page = 1;
 		var action = "";
 		var stopload = false;
+		var dataonload = false;
 		setClassActive();
 		urlHash = document.location.hash;
 		var urlDefault = "";
@@ -193,9 +197,10 @@
 		}).check(urlDefault).listen();
 		
 		var options = {
-		  distance: 1,
+		  distance: 5,
 		  callback: function(done) {
-			if(action!="detail" && !stopload){
+			if(action!="detail" && !stopload && !dataonload){
+				dataonload = true;
 				document.getElementById("loading").style.display = "block";
 				page++;
 				if(action=="peoples"){
@@ -203,18 +208,21 @@
 						listView(data);
 						document.getElementById("loading").style.display = "none";
 						if(!data.next) stopload = true;
+						dataonload = false;
 					});
 				}else if(action=="planets"){
 					swapiModule.getPlanets(page, function(data) {
 						listView(data);
 						document.getElementById("loading").style.display = "none";
 						if(!data.next) stopload = true;
+						dataonload = false;
 					});
 				}else if(action=="starships"){
 					swapiModule.getStarships(page, function(data) {
 						listView(data);
 						document.getElementById("loading").style.display = "none";
 						if(!data.next) stopload = true;
+						dataonload = false;
 					});
 				}
 			}
