@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"  />
+	<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
+	<meta name="description" content="This Description for Site">
+	<title>SWAPI</title>
+	<link href="css/fonts/fonts.css" rel="stylesheet" />
+	<link href="css/style.css" rel="stylesheet" />
+	<script src="lib/routing.js"></script>
+	<script src="lib/view.js"></script>
+	<script src="lib/swapi.js"></script>
+	<script src="lib/infiniteScoll.js"></script>
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+<header id="header">
+	<div class="add_fix">
+		<nav class="menu">
+			<ul id="menu">
+				<li><a onClick="setClassActive(this);" href="#/peoples">Peoples</a></li>
+				<li><a onClick="setClassActive(this);" href="#/planets">Planets</a></li>
+				<li><a onClick="setClassActive(this);" href="#/starships">Starships</a></li>
+			</ul>
+		</nav>
+	</div>
+</header><!--/#header -->
+<section id="content">
+	<div class="page add_fix">
+		<div class="centering add_fix" id="wrap">
+		</div>
+	</div><!--/.page -->
+</section><!--/#content -->
+<footer id="footer" class="add_fix">
+	<div class="copy">&copy; 2016. All Rights Reserved. Developed by Achmad Asrori</div>
+</footer><!--/#footer -->
+<script>
+	function detailView(data){
+		for(var index in data) { 	
+			var textnode;        
+			var node = document.createElement("LI");                
+			var l = document.createElement("SPAN");                
+			l.setAttribute('class','label');
+			textnode = document.createTextNode(index.replace('_',' ').replace(/\b[a-z]/g, function(letter) {
+    return letter.toUpperCase();
+}));        
+			l.appendChild(textnode);                             
+			
+			var v = document.createElement("SPAN");                
+			v.setAttribute('class','value');
+			value = String(data[index]).split(",").join("\r\n");
+			textnode = document.createTextNode(value);        
+			v.appendChild(textnode);                             
+			
+			node.appendChild(l);                             
+			node.appendChild(v);                             
+			document.getElementById("detail_fragment").appendChild(node);
+		}   
+	}
+	function itemView(data){
+		var node = document.createElement("LI");                
+		var a = document.createElement("A");                
+		data.url = data.url.replace('http://swapi.co/api','#');
+		a.setAttribute('href',data.url);
+		var textnode = document.createTextNode(data.name);        
+		a.appendChild(textnode);                             
+		node.appendChild(a);                             
+		document.getElementById("fragment").appendChild(node);   
+	}
+	function listView(datas){
+		for(i=0;i<datas.results.length;i++){
+			itemView(datas.results[i]);
+		}
+	}
+	function clearView(){
+		document.getElementById("fragment").innerHTML=""; 
+	}
+	
+	function hasClass(ele,cls) {
+		if(ele.className){
+			return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
+		}
+		return;
+	}
+
+	function addClass(ele,cls) {
+		if (!this.hasClass(ele,cls)) ele.className += " "+cls;
+	}
+
+	function removeClass(ele,cls) {
+		if (hasClass(ele,cls)) {
+			var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
+			ele.className=ele.className.replace(reg,'');
+		}
+	}
+	
+	function setClassActive(element){
+		var menu = document.getElementById("menu").childNodes;
+		for(i=0;i<menu.length;i++){
+			if(menu[i].nodeName=="LI"){
+				if(element){
+					removeClass(menu[i].children[0],'active');
+				}else{
+					urlHash = document.location.hash;
+					urlHash_ex = urlHash.split("/");
+					menuHash_ex = menu[i].children[0].getAttribute('href').split("/");
+					if((urlHash_ex[1]==menuHash_ex[1]) || (!urlHash && i==1)){
+						addClass(menu[i].children[0],'active');
+					}
+				}
+			}
+		}
+		if(element){
+			addClass(element,'active');
+		}
+	}
+	
+	document.addEventListener("DOMContentLoaded", init, false);
+	function init() {
+		var page = 1;
+		var action = "";
+		var stopload = false;
+		setClassActive();
+		urlHash = document.location.hash;
+		var urlDefault = "";
+		if(!urlHash){
+			urlDefault = "/peoples";
+			document.location.hash = urlDefault;
+		}
+		Router.
+		add(/people\/(.*)/, function() {
+			document.getElementById("overlay").style.display = "block";
+			getView('wrap','detail.html');
+			action = "detail";
+			swapiModule.getPerson(arguments[0],function(data) {
+				detailView(data);
+				document.getElementById("overlay").style.display = "none";
+			})
+		}).add(/peoples/, function() {
+			stopload = false;
+			document.getElementById("overlay").style.display = "block";
+			getView('wrap','list.html');
+			swapiModule.getPeople(function(data) {
+				clearView();
+				listView(data);
+				page = 1;
+				action = "peoples";
+				document.getElementById("overlay").style.display = "none";
+			});
+		})
+		.add(/planets\/(.*)/, function() {
+			document.getElementById("overlay").style.display = "block";
+			getView('wrap','detail.html');
+			action = "detail";
+			swapiModule.getPlanet(arguments[0],function(data) {
+				detailView(data);
+				document.getElementById("overlay").style.display = "none";
+			})
+		})
+		.add(/planets/, function() {
+			stopload = false;
+			document.getElementById("overlay").style.display = "block";
+			getView('wrap','list.html');
+			swapiModule.getPlanets(function(data) {
+				clearView();
+				listView(data);
+				page = 1;
+				action = "planets";
+				document.getElementById("overlay").style.display = "none";
+			});
+		})
+		.add(/starships\/(.*)/, function() {
+			document.getElementById("overlay").style.display = "block";
+			getView('wrap','detail.html');
+			action = "detail";
+			swapiModule.getStarship(arguments[0],function(data) {
+				detailView(data);
+				document.getElementById("overlay").style.display = "none";
+			})
+		})
+		.add(/starships/, function() {
+			stopload = false;
+			document.getElementById("overlay").style.display = "block";
+			getView('wrap','list.html');
+			swapiModule.getStarships(function(data) {
+				clearView();
+				listView(data);
+				page = 1;
+				action = "starships";
+				document.getElementById("overlay").style.display = "none";
+			});
+		}).check(urlDefault).listen();
+		
+		var options = {
+		  distance: 1,
+		  callback: function(done) {
+			if(action!="detail" && !stopload){
+				document.getElementById("loading").style.display = "block";
+				page++;
+				if(action=="peoples"){
+					swapiModule.getPeople(page, function(data) {
+						listView(data);
+						document.getElementById("loading").style.display = "none";
+						if(!data.next) stopload = true;
+					});
+				}else if(action=="planets"){
+					swapiModule.getPlanets(page, function(data) {
+						listView(data);
+						document.getElementById("loading").style.display = "none";
+						if(!data.next) stopload = true;
+					});
+				}else if(action=="starships"){
+					swapiModule.getStarships(page, function(data) {
+						listView(data);
+						document.getElementById("loading").style.display = "none";
+						if(!data.next) stopload = true;
+					});
+				}
+			}
+			done();
+		  }
+		}
+
+		infiniteScroll(options);
+	}
+</script>
+</body>
+</html>
