@@ -104,6 +104,9 @@
 				}else{
 					urlHash = document.location.hash;
 					urlHash_ex = urlHash.split("/");
+					if(urlHash_ex[1]=="people"){
+						urlHash_ex[1]="peoples";
+					}
 					menuHash_ex = menu[i].children[0].getAttribute('href').split("/");
 					if((urlHash_ex[1]==menuHash_ex[1]) || (!urlHash && i==1)){
 						addClass(menu[i].children[0],'active');
